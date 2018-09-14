@@ -80,6 +80,8 @@ def main():
     #
 
     # Load data
+
+    # XXX: Maybe it is better to store this data in .cache ?
     fpath = os.path.join(THIS_DIR, DUMP_FNAME)
     if os.path.exists(fpath):
         with open(fpath, "r") as fp:
