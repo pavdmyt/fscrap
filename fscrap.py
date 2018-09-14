@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+from datetime import datetime
 from pprint import pprint
 
 import requests
@@ -8,8 +9,8 @@ from lxml import html
 
 
 _PY_VER = sys.version_info
-if _PY_VER < (3, 5):
-    raise RuntimeError("fscrap requires Python verion >= 3.5")
+if _PY_VER < (3, 6):
+    raise RuntimeError("fscrap requires Python verion >= 3.6")
 
 
 URL = "http://127.0.0.1:8000/"
@@ -46,15 +47,27 @@ def parse_date(date_element):
     return {"day": day, "time": time}
 
 
+def datetime_to_epoch(time_str, fmt="%d-%m-%Y %H:%M"):
+    d = datetime.strptime(time_str, fmt)
+    return d.strftime("%s")
+
+
 def main():
     page = requests.get(URL)
     tree = html.fromstring(page.content)
 
     titles = get_elements(tree, POST_TITLE_TMPL, qty=QTY)
     dates = get_elements(tree, POST_DATE_TMPL, qty=QTY)
+
+    res = {}
     for title, date in zip(titles, dates):
-        post_data = {**parse_title(title), **parse_date(date)}
-        pprint(post_data)
+        date_dict = parse_date(date)
+        post_data = {**parse_title(title), **date_dict}
+        date_str = f'{date_dict["day"]} {date_dict["time"]}'
+        key = datetime_to_epoch(date_str)
+        res[int(key)] = post_data
+
+    pprint(res)
 
 
 if __name__ == "__main__":
