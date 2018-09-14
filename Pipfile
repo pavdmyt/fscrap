@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 requests = "*"
 lxml = "*"
+simplejson = "*"
 
 [dev-packages]
 "flake8" = "*"

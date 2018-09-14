@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 from datetime import datetime
-from pprint import pprint
 
 import requests
+import simplejson as json
 from lxml import html
+
+
+# TODO: add logging
 
 
 _PY_VER = sys.version_info
@@ -15,6 +19,8 @@ if _PY_VER < (3, 6):
 
 URL = "http://127.0.0.1:8000/"
 QTY = 10  # how many elements to scrap
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+DUMP_FNAME = "post_data.json"
 
 # XPath selectors
 POST_TITLE_TMPL = '//*[@id="dle-content"]/div[{0}]/div[1]/a'
@@ -53,21 +59,40 @@ def datetime_to_epoch(time_str, fmt="%d-%m-%Y %H:%M"):
 
 
 def main():
+    # Srap the page
     page = requests.get(URL)
     tree = html.fromstring(page.content)
 
     titles = get_elements(tree, POST_TITLE_TMPL, qty=QTY)
     dates = get_elements(tree, POST_DATE_TMPL, qty=QTY)
 
-    res = {}
+    # Build JSON
+    parsed_data = {}
     for title, date in zip(titles, dates):
         date_dict = parse_date(date)
         post_data = {**parse_title(title), **date_dict}
         date_str = f'{date_dict["day"]} {date_dict["time"]}'
         key = datetime_to_epoch(date_str)
-        res[int(key)] = post_data
+        parsed_data[int(key)] = post_data
 
-    pprint(res)
+    #
+    # Write JSON to FS
+    #
+
+    # Load data
+    fpath = os.path.join(THIS_DIR, DUMP_FNAME)
+    if os.path.exists(fpath):
+        with open(fpath, "r") as fp:
+            existing_data = json.load(fp)
+    else:
+        existing_data = {}
+
+    # Merge and write data
+    new_data = {**existing_data, **parsed_data}
+    with open(fpath, "w") as fp:
+        json.dump(new_data, fp)
+
+    print(f"* Saved to {fpath}")
 
 
 if __name__ == "__main__":
