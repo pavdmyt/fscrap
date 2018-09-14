@@ -17,7 +17,7 @@ QTY = 10  # how many elements to scrap
 
 # XPath selectors
 POST_TITLE_TMPL = '//*[@id="dle-content"]/div[{0}]/div[1]/a'
-POST_DATE_TMPL = '//*[@id="dle-content"]/div[1]/div[2]/span[1]'
+POST_DATE_TMPL = '//*[@id="dle-content"]/div[{0}]/div[2]/span[1]'
 
 
 def get_elements(page_tree, xpath_tmpl, qty=0):
